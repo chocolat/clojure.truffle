@@ -1,0 +1,16 @@
+(trigger
+    (key [[alt]9]))
+
+(name [Wrap Sexpr])
+
+(only-in source.clojure)
+
+(input selection)
+
+(output snippet)
+
+(save file)
+
+(script [#!/usr/bin/env ruby
+t = ENV['TM_SELECTED_TEXT'].gsub("\n+$","")
+print "($1 #{t})$0"])

@@ -1,0 +1,1302 @@
+(root source.clojure
+    (include @comment)
+    (include @function)
+    (include @function_multi_method)
+    (include @macro)
+    (include @namespace)
+    (include @sexpr))
+
+(collection function_multi_method
+    (zone meta.function.multi_method.clojure
+        (start
+            (regex [\(\s*(defmethod\-?)\s+]
+                (1 storage.type.function.type.clojure)))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @comment)
+            (zone
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (zone meta.function.multi_method.name.clojure
+                        (start
+                            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex [(?<=[a-zA-Z+!\-_?0-9*~#@'`/.$=])(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (subzones
+                            (include @function_name)))
+                    (zone
+                        (start
+                            (regex [(?<=[a-zA-Z+!\-_?0-9*~#@'`/.$=])(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex [(?=\))]))
+                        (subzones
+                            (include @comment)
+                            (include @metadata)
+                            (include @operator_special)
+                            (zone meta.structure.multi_method_exp.constant.language.clojure
+                                (start
+                                    (regex [(\(\)|{}|\[\]|#{})]
+                                        (1 constant.language.clojure)))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (include @parameters_body)))
+                            (zone meta.structure.multi_method_exp.sexp.clojure
+                                (start
+                                    (regex [(?=#?\()]))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (zone
+                                        (start
+                                            (regex [(?=#?\()]))
+                                        (end
+                                            (regex [(?<=\))]))
+                                        (subzones
+                                            (include @function)
+                                            (include @function_multi_method)
+                                            (include @lambda)
+                                            (include @macro)
+                                            (include @sexpr)))
+                                    (include @parameters_body)))
+                            (zone meta.structure.multi_method_exp.vector.clojure
+                                (start
+                                    (regex `(\[)`))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (zone meta.expression.vector.clojure
+                                        (start
+                                            (regex `(?<=\[)`
+                                                (0 punctuation.definition.vector.begin.clojure)))
+                                        (end
+                                            (regex `(\])`
+                                                (1 punctuation.definition.vector.end.clojure)))
+                                        (subzones
+                                            (include @all)))
+                                    (zone
+                                        (start
+                                            (regex `(?<=\])\s*`))
+                                        (end
+                                            (regex [(?=\))]))
+                                        (subzones
+                                            (include @parameters_body)))))
+                            (zone meta.structure.multi_method_exp.map.clojure
+                                (start
+                                    (regex [(\{)]))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (zone meta.expression.map.clojure
+                                        (start
+                                            (regex [(?<=\{)]
+                                                (0 punctuation.definition.map.begin.clojure)))
+                                        (end
+                                            (regex [}]
+                                                (0 punctuation.definition.map.end.clojure)))
+                                        (subzones
+                                            (include @all)))
+                                    (include @parameters_body)))
+                            (zone meta.structure.multi_method_exp.set.clojure
+                                (start
+                                    (regex [(?=#\{)]))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (include @set)
+                                    (include @parameters_body)))
+                            (zone meta.structure.multi_method_exp.string.clojure
+                                (start
+                                    (regex [(?=")|(?=\\)|(?=\:)|(?=\#")]))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (include @string)
+                                    (include @parameters_body)))
+                            (zone meta.structure.multi_method_exp.symbole.clojure
+                                (start
+                                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (zone
+                                        (start
+                                            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                                        (end
+                                            (regex [(?<=[a-zA-Z+!\-_?0-9*~#@'`/.$=])(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                                        (subzones
+                                            (include @symbol_java_inherited_class)
+                                            (include @keyword)
+                                            (include @operator)
+                                            (include @number)
+                                            (include @symbol)))
+                                    (zone
+                                        (start
+                                            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                                        (end
+                                            (regex [(?=\))]))
+                                        (subzones
+                                            (include @parameters_body)))))))))
+            (zone))))
+
+(collection sexpr
+    (zone meta.sexpr.clojure
+        (start
+            (regex [\((?!\))]))
+        (end
+            (regex [(?<!\()\)]))
+        (subzones
+            (include @sexpr_special)
+            (include @all))))
+
+(collection function_body
+    (zone meta.function.body.code.clojure
+        (start
+            (regex `\(\s*(?=\[)`))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @parameters_body)))
+    (zone meta.function.body.clojure
+        (start
+            (regex `(?=\[)`))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @parameters_body))))
+
+(collection symbol_java_class
+    (zone storage.type.java.clojure
+        (start
+            (regex [(?=([a-z]+\.)*[A-Z][a-zA-Z]*(\$[A-Z][a-zA-Z]*)?)]))
+        (end
+            (regex [(?![a-zA-Z.$])]))
+        (subzones
+            (include @symbol))))
+
+(collection symbol
+    (zone constant.other.java.clojure
+        (match
+            (regex [\b[A-Z_]{2,}\b])))
+    (zone source.symbol.global.clojure
+        (match
+            (regex [(?<![a-zA-Z+!\-_?0-9*])\*[a-z\-]{2,}\*(?![a-zA-Z+!\-_?0-9*])])))
+    (zone source.symbol.clojure
+        (start
+            (regex [(?=[a-zA-Z+!\-_?0-9*=])]))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*=])]))
+        (subzones
+            (zone invalid.illegal.symbol.clojure
+                (start
+                    (regex [[0-9]]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*=])])))
+            (zone
+                (start
+                    (regex [[a-zA-Z]]))
+                (end
+                    (regex [([+!\-_?*=#])?(?![a-zA-Z+!\-_?0-9*=])]
+                        (1 keyword.other.mark.clojure))))
+            (zone
+                (start
+                    (regex [[+!\-_?*=]]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*=])])))))
+    (zone keyword.operator.classpath.clojure
+        (match
+            (regex [(?<=[a-zA-Z+!\-_?0-9*])\.(?=[a-zA-Z+!\-_?0-9*])])))
+    (zone keyword.operator.qualified.clojure
+        (match
+            (regex [(?<=[a-zA-Z+!\-_?0-9*])(/|\$)(?=[a-zA-Z+!\-_?0-9*])]))))
+
+(collection macro
+    (zone meta.function.macro.clojure
+        (start
+            (regex [\(\s*(\b(defmacro\-?))\s+]
+                (1 storage.type.function.type.clojure)))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @comment)
+            (include @metadata)
+            (zone
+                (match
+                    (regex \s*)))
+            (include @function_name)
+            (include @function_body_comment))))
+
+(collection bindings_form
+    (zone meta.structure.bindings.clojure
+        (start
+            (regex `\[`))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (zone
+                (start
+                    (regex `(?<=\[)`))
+                (end
+                    (regex `\]`))
+                (subzones
+                    (include @binding)))
+            (zone
+                (start
+                    (regex `(?<=\])`))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all))))))
+
+(collection binding
+    (zone
+        (subzones
+            (include @comment)
+            (include @metadata)
+            (zone meta.structure.binding.vector.clojure
+                (start
+                    (regex `\[`
+                        (0 punctuation.definition.vector.begin.clojure)))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone meta.parameters.vector.clojure
+                        (start
+                            (regex `(?<=\[)`))
+                        (end
+                            (regex `\]`
+                                (0 punctuation.definition.vector.end.clojure)))
+                        (subzones
+                            (include @comment)
+                            (include @metadata)
+                            (include @parameters_variable)
+                            (zone keyword.operator.varargs.clojure
+                                (match
+                                    (regex \&)))
+                            (zone keyword.operator.symbolargs.clojure
+                                (match
+                                    (regex [(:as)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+                            (include @parameters)
+                            (include @parameters_map)
+                            (include @all)))
+                    (include @binding_exp)))
+            (zone meta.structure.binding.map.clojure
+                (start
+                    (regex [\{]
+                        (0 punctuation.definition.map.begin.clojure)))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone meta.function.parameters.map.clojure
+                        (start
+                            (regex [(?<=\{)]))
+                        (end
+                            (regex [\}]
+                                (0 punctuation.definition.map.end.clojure)))
+                        (subzones
+                            (include @comment)
+                            (include @metadata)
+                            (include @parameters_variable)
+                            (zone keyword.operator.symbolargs.clojure
+                                (match
+                                    (regex [(:as|:or|:keys|:strs|:syms)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+                            (include @parameters)
+                            (include @parameters_map)
+                            (include @all)))
+                    (include @binding_exp)))
+            (zone meta.structure.binding.symbolargs.clojure
+                (start
+                    (regex [(:when|:while)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]
+                        (1 keyword.operator.symbolargs.clojure)))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (include @binding_exp)))
+            (zone meta.structure.binding.symbole.clojure
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone variable.parameter.clojure
+                        (start
+                            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex [(?<=[a-zA-Z+!\-_?0-9*~#@'`/.$=])(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (subzones
+                            (include @keyword)
+                            (include @operator)
+                            (include @number)
+                            (include @symbol)))
+                    (zone
+                        (start
+                            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex `(?=\])`))
+                        (subzones
+                            (include @binding_exp)))))
+            (zone invalid.illegal.bindings.clojure
+                (start
+                    (regex [[^\s]]))
+                (end
+                    (regex `[^\]]`))))))
+
+(collection string_escape
+    (zone constant.character.escape.clojure
+        (match
+            (regex [\\(u[0-9a-fA-F]{4}|b|t|n|f|r|"|'|\\|[0-3]?[0-7]{1,2}|(.))]
+                (2 invalid.illegal.escape.string.clojure)))))
+
+(collection function
+    (zone meta.function.clojure
+        (start
+            (regex [\(\s*(defn\-?)\s]
+                (1 storage.type.function.type.clojure)))
+        (end
+            (regex [\)]
+                (1 punctuation.terminator.function.clojure)))
+        (subzones
+            (include @comment)
+            (include @metadata)
+            (zone
+                (match
+                    (regex \s*)))
+            (include @function_name)
+            (include @function_body_comment))))
+
+(collection parameters
+    (zone meta.parameters.vector.clojure
+        (start
+            (regex `\[`
+                (0 punctuation.definition.vector.begin.clojure)))
+        (end
+            (regex `\]`
+                (0 punctuation.definition.vector.end.clojure)))
+        (subzones
+            (zone keyword.operator.varargs.clojure
+                (match
+                    (regex \&)))
+            (zone keyword.operator.symbolargs.clojure
+                (match
+                    (regex [(:as)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+            (include @comment)
+            (include @metadata)
+            (include @parameters_variable)
+            (include @parameters)
+            (include @parameters_map))))
+
+(collection metadata
+    (zone punctuation.metadata.map.clojure
+        (start
+            (regex [#\^{]
+                (0 comment.punctuation.definition.metadata.begin.clojure)))
+        (end
+            (regex [}]
+                (0 comment.punctuation.definition.metadata.end.clojure)))
+        (subzones
+            (include @metadata_patterns)))
+    (zone string.metadata.clojure
+        (start
+            (regex [#\^"]
+                (0 comment.punctuation.definition.metadata.begin.clojure)))
+        (end
+            (regex "
+                (0 comment.punctuation.definition.metadata.end.clojure))))
+    (zone punctuation.metadata.class.clojure
+        (match
+            (regex [(#\^)([a-zA-Z+!\-_?0-9*/.$=]+)]
+                (1 comment.punctuation.definition.metadata.begin.clojure)
+                (2 storage.type.java.clojure)))))
+
+(collection lambda
+    (zone meta.function.lambda.clojure
+        (start
+            (regex [\(\s*(fn)\s+]
+                (1 storage.type.function.type.clojure)))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @comment)
+            (include @function_name)
+            (include @function_body)))
+    (zone meta.function.lambda.clojure
+        (start
+            (regex [(#)\(]
+                (1 storage.type.function.type.clojure)))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @sexpr_special)
+            (include @all))))
+
+(collection operator
+    (zone keyword.operator.clojure
+        (match
+            (regex [(?<![a-zA-Z0-9*+!_?\-])(\*|/|\<|\<=|=|==|\>|\>=|-\>)(?![a-zA-Z0-9*+!_?\-])])))
+    (zone keyword.operator.clojure
+        (match
+            (regex [(?<![a-zA-Z0-9*+!_?\-])(-|\+)(?![a-zA-Z0-9*+!_?\-])])))
+    (zone keyword.operator.class.clojure
+        (match
+            (regex [(?<![a-zA-Z0-9*+!_?\-])(\.|\.\.)(?![a-zA-Z0-9*+!_?\-])])))
+    (zone variable.parameter.literal.clojure
+        (match
+            (regex [%(\d+|&)?])))
+    (include @operator_special))
+
+(collection parameters_variable
+    (zone variable.parameter.clojure
+        (start
+            (regex [(?=[a-zA-Z+!\-_?0-9*~@'`/.$=])]))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (subzones
+            (include @keyword)
+            (include @operator)
+            (include @number)
+            (include @symbol))))
+
+(collection comment
+    (zone comment.line.semicolon.double.banner.clojure
+        (match
+            (regex [(;;).*(;;)$\n?]
+                (1 punctuation.definition.comment.clojure))))
+    (zone comment.line.semicolon.double.clojure
+        (match
+            (regex [(;;).*$\n?]
+                (1 punctuation.definition.comment.clojure))))
+    (zone comment.line.semicolon.start.clojure
+        (match
+            (regex [^(;).*$\n?]
+                (1 punctuation.definition.comment.clojure))))
+    (zone comment.line.semicolon.clojure
+        (match
+            (regex [(;).*$\n?]
+                (1 punctuation.definition.comment.clojure)))))
+
+(collection number
+    (zone constant.numeric.float.ratio.clojure
+        (match
+            (regex [(-|\+)?\b[0-9]+(/)[0-9]+\b]
+                (2 keyword.operator.arithmetic.ratio.clojure))))
+    (zone constant.numeric.float.clojure
+        (match
+            (regex [[-+]?\b[0-9]+((\.[0-9]+([eE][-+]?[0-9]+)?)|((\.[0-9]+)?[eE][-+]?[0-9]+))?\b])))
+    (zone constant.numeric.big_decimal.clojure
+        (match
+            (regex [[-+]?\b[0-9]+(((\.[0-9])?+([eE][-+]?[0-9]+)?)|((\.[0-9]+)?[eE][-+]?[0-9]+))[M]?\b])))
+    (zone constant.numeric.integer.octal.clojure
+        (match
+            (regex [(-|\+)?\b(0)([0-7]+|([89]))([0-9]*)\b]
+                (4 invalid.illegal.integer.octal.clojure)
+                (5 invalid.illegal.integer.octal.clojure)
+                (2 keyword.operator.arithmetic.octal.clojure))))
+    (zone constant.numeric.integer.clojure
+        (match
+            (regex [(-|\+)?\b[0-9]+\b])))
+    (zone constant.numeric.integer.hexa.clojure
+        (match
+            (regex [(-|\+)?\b(0[xX])[0-9A-Fa-f]+\b]
+                (2 keyword.operator.arithmetic.hexa.clojure)))))
+
+(collection expr
+    (zone meta.expr.clojure
+        (subzones
+            (include @keyword)
+            (include @operator)
+            (include @string)
+            (include @vector)
+            (include @map)
+            (include @set)
+            (include @metadata)
+            (include @number)
+            (include @symbol))))
+
+(collection sexpr_special
+    (zone meta.function.let_form.clojure
+        (start
+            (regex `(?<=\()\s*(let|loop|doseq|dotimes|binding|for|if-let|when-let|with-local-vars|with-open)\s+(?=\[)`
+                (1 keyword.control.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @bindings_form)))
+    (zone meta.function.def_form.clojure
+        (start
+            (regex [(?<=\()\s*(def|declare|defstruct|defonce|defmulti)\s+]
+                (1 storage.type.variable.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @metadata)
+            (zone
+                (match
+                    (regex \s*)))
+            (include @function_name)
+            (zone
+                (start
+                    (regex [(?<=$|.)]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all)))))
+    (zone meta.function.def_form.clojure
+        (start
+            (regex [(?<=\()\s*(prefer-method)\s+]
+                (1 storage.type.variable.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @metadata)
+            (zone
+                (match
+                    (regex \s*)))
+            (include @function_name)
+            (zone
+                (start
+                    (regex [(?<=$|.)]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @symbol_java_inherited_class)
+                    (include @all)))))
+    (zone meta.function.isInstance_form.clojure
+        (start
+            (regex [(?<=\()\s*(instance(\?))\s+]
+                (1 support.function.tester.clojure)
+                (2 keyword.other.mark.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @symbol_java_class_form_body)))
+    (zone meta.function.cast_form.clojure
+        (start
+            (regex [(?<=\()\s*(cast)\s+]
+                (1 support.function.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @symbol_java_class_form_body)))
+    (zone meta.function.new_form.clojure
+        (start
+            (regex [(?<=\()\s*((new)\s+|(?=[a-zA-Z][a-zA-Z.]*\.(\s+|$|\))))]
+                (2 keyword.control.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (zone storage.type.java.clojure
+                (start
+                    (regex [(?=([a-z]+\.)*[A-Z][a-zA-Z]*(\$[A-Z][a-zA-Z]*)?)]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))
+            (zone
+                (start
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all)))
+            (include @all)))
+    (zone meta.function.member_access_form.clojure
+        (start
+            (regex [(?<=\()\s*((\.\.?)\s+(?=([a-z]+\.)*[A-Z][a-zA-Z]*(\$[A-Z][a-zA-Z]*)?))]
+                (2 keyword.control.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (zone storage.type.java.clojure
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))
+            (zone
+                (start
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all)))
+            (include @all)))
+    (zone meta.function.genclass_form.clojure
+        (start
+            (regex [(?<=\()\s*(gen-class)\s+]
+                (1 support.function.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @genclass_parameters)))
+    (zone meta.function.geninterface_form.clojure
+        (start
+            (regex [(?<=\()\s*(gen-interface)\s+]
+                (1 support.function.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @geninterface_parameters)))
+    (zone meta.function.catch_form.clojure
+        (start
+            (regex [(?<=\()\s*((catch)\s+)]
+                (2 keyword.control.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (zone
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol_java_class_form_body)))
+            (zone variable.parameter.clojure
+                (start
+                    (regex [\s+(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))
+            (zone
+                (start
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all)))
+            (include @all)))
+    (zone meta.function.setvar_form.clojure
+        (start
+            (regex [(?<=\()\s*(((set|swap|compare-and-set)(\!))\s+)]
+                (3 keyword.other.mark.clojure)
+                (2 keyword.control.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (zone variable.parameter.clojure
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))
+            (zone
+                (start
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all)))
+            (include @all)))
+    (zone meta.function.proxy_form.clojure
+        (start
+            (regex [(?<=\()\s*(proxy)\s+]
+                (1 keyword.control.clojure)))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @comment)
+            (zone
+                (start
+                    (regex `(?=\[)`))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @comment)
+                    (zone
+                        (start
+                            (regex `\[`))
+                        (end
+                            (regex `\]`))
+                        (subzones
+                            (zone entity.other.inherited-class.java.proxy.clojure
+                                (start
+                                    (regex [(?=([a-z]+\.)*[A-Z][a-zA-Z]*)]))
+                                (end
+                                    (regex [(?![a-zA-Z.])]))
+                                (subzones
+                                    (include @symbol)))
+                            (include @all)))
+                    (zone
+                        (start
+                            (regex `(?<=\])`))
+                        (end
+                            (regex [(?=\))]))
+                        (subzones
+                            (include @comment)
+                            (zone meta.function.body.proxy_form.clojure
+                                (start
+                                    (regex `(?=\[)`))
+                                (end
+                                    (regex [(?=\))]))
+                                (subzones
+                                    (include @comment)
+                                    (include @parameters)
+                                    (zone
+                                        (start
+                                            (regex `(?<=\])`))
+                                        (end
+                                            (regex [(?=\))]))
+                                        (subzones
+                                            (include @comment)
+                                            (zone meta.function.proxy.method.clojure
+                                                (start
+                                                    (regex [\(\s*]))
+                                                (end
+                                                    (regex [\)]))
+                                                (subzones
+                                                    (include @comment)
+                                                    (include @function_name)
+                                                    (include @function_body_comment))))))))))))))
+
+(collection namespace_body
+    (zone support.other.keyword.namespace.clojure
+        (match
+            (regex [(:refer-clojure|:require|:use|:import|:load|:exclude|:as|:only)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+    (zone meta.function.genclass_form.clojure
+        (start
+            (regex [\(\s*(:gen-class)]
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @genclass_parameters)))
+    (include @symbol)
+    (include @string)
+    (zone
+        (start
+            (regex [\(]))
+        (end
+            (regex [\)]))
+        (subzones
+            (include @namespace_body)))
+    (zone
+        (start
+            (regex `\[`))
+        (end
+            (regex `\]`))
+        (subzones
+            (include @namespace_body))))
+
+(collection binding_exp
+    (zone
+        (subzones
+            (include @comment)
+            (include @metadata)
+            (include @operator_special)
+            (zone meta.structure.binding_exp.constant.language.clojure
+                (start
+                    (regex [(\(\)|{}|\[\]|#{})]
+                        (1 constant.language.clojure)))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (include @binding)))
+            (zone meta.structure.binding_exp.sexp.clojure
+                (start
+                    (regex [(?=#?\()]))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone
+                        (start
+                            (regex [(?=#?\()]))
+                        (end
+                            (regex [(?<=\))]))
+                        (subzones
+                            (include @function)
+                            (include @function_multi_method)
+                            (include @lambda)
+                            (include @macro)
+                            (include @sexpr)))
+                    (include @binding)))
+            (zone meta.structure.binding_exp.vector.clojure
+                (start
+                    (regex `(\[)`))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone meta.expression.vector.clojure
+                        (start
+                            (regex `(?<=\[)`
+                                (0 punctuation.definition.vector.begin.clojure)))
+                        (end
+                            (regex `\]`
+                                (0 punctuation.definition.vector.end.clojure)))
+                        (subzones
+                            (include @all)))
+                    (include @binding)))
+            (zone meta.structure.binding_exp.map.clojure
+                (start
+                    (regex [(\{)]))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone meta.expression.map.clojure
+                        (start
+                            (regex [(?<=\{)]
+                                (0 punctuation.definition.map.begin.clojure)))
+                        (end
+                            (regex [}]
+                                (0 punctuation.definition.map.end.clojure)))
+                        (subzones
+                            (include @all)))
+                    (include @binding)))
+            (zone meta.structure.binding_exp.set.clojure
+                (start
+                    (regex [(?=#\{)]))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (include @set)
+                    (include @binding)))
+            (zone meta.structure.binding_exp.string.clojure
+                (start
+                    (regex [(?=")|(?=\\)|(?=\:)|(?=\#")]))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (include @string)
+                    (include @binding)))
+            (zone meta.structure.binding_exp.symbole.clojure
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex `(?=\])`))
+                (subzones
+                    (zone
+                        (start
+                            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex [(?<=[a-zA-Z+!\-_?0-9*~#@'`/.$=])(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (subzones
+                            (include @keyword)
+                            (include @operator)
+                            (include @number)
+                            (include @symbol)))
+                    (zone
+                        (start
+                            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex `(?=\])`))
+                        (subzones
+                            (include @binding)))))
+            (zone invalid.illegal.bindings.clojure
+                (start
+                    (regex [[^\s]]))
+                (end
+                    (regex `[^\]]`))))))
+
+(collection string
+    (zone string.quoted.double.clojure
+        (start
+            (regex "
+                (0 punctuation.definition.string.begin.clojure)))
+        (end
+            (regex "
+                (0 punctuation.definition.string.end.clojure)))
+        (subzones
+            (include @string_escape)))
+    (zone constant.character.escape.clojure
+        (match
+            (regex [\\(u[0-9a-fA-F]{4}|newline|tab|space|backspace|formfeed|return|[^\s])])))
+    (zone constant.string.symbole.clojure
+        (start
+            (regex [(\:{1,2})(?=[a-zA-Z+!\-_?0-9*/.$=])]
+                (1 keyword.operator.symbole.clojure)))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (subzones
+            (include @symbol)))
+    (zone string.regexp.clojure
+        (start
+            (regex [#"]
+                (0 punctuation.definition.string.begin.clojure)))
+        (end
+            (regex "
+                (0 punctuation.definition.string.end.clojure)))
+        (subzones
+            (include source.regexp.oniguruma))))
+
+(collection vector
+    (zone meta.expression.vector.clojure
+        (start
+            (regex [\[(?!\])]
+                (0 punctuation.definition.vector.begin.clojure)))
+        (end
+            (regex [(?<!\[)\]]
+                (0 punctuation.definition.vector.end.clojure)))
+        (subzones
+            (include @all))))
+
+(collection parameters_map
+    (zone meta.function.parameters.map.clojure
+        (start
+            (regex [\{]
+                (0 punctuation.definition.map.begin.clojure)))
+        (end
+            (regex [\}]
+                (0 punctuation.definition.map.end.clojure)))
+        (subzones
+            (include @parameters_variable)
+            (zone keyword.operator.symbolargs.clojure
+                (match
+                    (regex [(:as|:or|:keys|:strs|:syms)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+            (include @parameters)
+            (include @parameters_map)
+            (include @all))))
+
+(collection gencommon_parameters
+    (include @comment)
+    (zone meta.other.genclass.name.clojure
+        (start
+            (regex [(:name)\s+(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (subzones
+            (zone entity.name.namespace.clojure
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))))
+    (zone meta.other.genclass.methods.clojure
+        (start
+            (regex `(:methods)\s+(\[)`
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex `\]`))
+        (subzones
+            (zone meta.other.genclass.method.signature.clojure
+                (start
+                    (regex `\[`))
+                (end
+                    (regex `\]`))
+                (subzones
+                    (zone meta.other.genclass.method.args.signature.clojure
+                        (start
+                            (regex `\[`))
+                        (end
+                            (regex `\]`))
+                        (subzones
+                            (zone storage.type.java.clojure
+                                (start
+                                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                                (end
+                                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                                (subzones
+                                    (include @symbol)))
+                            (include @all)))
+                    (zone storage.type.java.genclass.return_type.clojure
+                        (start
+                            (regex `(?=[a-zA-Z+!\-_?0-9*~#@'``/.$=]+\s*])`))
+                        (end
+                            (regex .|$))
+                        (subzones
+                            (include @symbol)))
+                    (include @all)))
+            (include @all))))
+
+(collection namespace
+    (zone meta.function.namespace.clojure
+        (start
+            (regex [\(\s*(ns)\b]
+                (1 support.function.namespace.clojure)))
+        (end
+            (regex [\)]))
+        (subzones
+            (zone entity.name.namespace.clojure
+                (start
+                    (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))
+            (include @namespace_body))))
+
+(collection function_body_comment
+    (zone string.docstring.clojure
+        (start
+            (regex "
+                (0 string.quoted.double.begin.clojure)))
+        (end
+            (regex "
+                (0 string.quoted.double.end.clojure)))
+        (subzones
+            (include @string_escape)))
+    (zone meta.metadata.map.clojure
+        (start
+            (regex [\{]
+                (0 comment.punctuation.definition.metadata.begin.clojure)))
+        (end
+            (regex [\}]
+                (0 comment.punctuation.definition.metadata.end.clojure)))
+        (subzones
+            (include @metadata_patterns)))
+    (include @function_body))
+
+(collection all
+    (include @function)
+    (include @function_multi_method)
+    (include @lambda)
+    (include @macro)
+    (include @comment)
+    (include @expr)
+    (include @sexpr))
+
+(collection genclass_parameters
+    (include @gencommon_parameters)
+    (zone meta.other.genclass.extends.clojure
+        (start
+            (regex [(:extends)\s+]
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (subzones
+            (include @symbol_java_inherited_class)))
+    (zone meta.other.genclass.implements.clojure
+        (start
+            (regex `(:implements)\s+(\[)`
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex `\]`))
+        (subzones
+            (include @symbol_java_inherited_class)
+            (include @all)))
+    (zone meta.other.genclass.constructors.clojure
+        (start
+            (regex [(:constructors)\s+(\{)]
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex [\}]))
+        (subzones
+            (zone meta.other.genclass.constructor.signature.clojure
+                (start
+                    (regex `\[`))
+                (end
+                    (regex `\]`))
+                (subzones
+                    (zone storage.type.java.clojure
+                        (start
+                            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (end
+                            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                        (subzones
+                            (include @symbol)))
+                    (include @all)))
+            (include @all)))
+    (zone meta.other.genclass.exposes.clojure
+        (start
+            (regex [(:exposes)\s+(\{)]
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex [\}]))
+        (subzones
+            (zone meta.other.genclass.exposes.get_set.clojure
+                (start
+                    (regex [\{]))
+                (end
+                    (regex [\}]))
+                (subzones
+                    (zone support.other.keyword.genclass.clojure
+                        (match
+                            (regex [:(get|set)])))
+                    (include @all)))
+            (include @all)))
+    (zone
+        (match
+            (regex [:(init|main|factory|state|prefix|load-impl-ns|implements|constructors|exposes|impl-ns|exposes-methods|methods)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]
+                (0 support.other.keyword.genclass.clojure))))
+    (include @all))
+
+(collection operator_special
+    (zone keyword.control.operator.clojure
+        (match
+            (regex [`|~@|~])))
+    (zone storage.type.function.type.clojure
+        (match
+            (regex [#'|@])))
+    (zone constant.other.quote
+        (match '))
+    (zone constant.other.metadata.read.clojure
+        (match
+            (regex \^))))
+
+(collection map
+    (zone meta.expression.map.clojure
+        (start
+            (regex [{(?!})]
+                (0 punctuation.definition.map.begin.clojure)))
+        (end
+            (regex [(?<!{)}]
+                (0 punctuation.definition.map.end.clojure)))
+        (subzones
+            (include @all))))
+
+(collection keyword
+    (zone keyword.control.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b((if-not|if|cond|do|let|loop|recur|throw|try|catch|finally|new|trampoline)\b|(set!|swap!|compare-and-set!))(?![*+!_?\-])])))
+    (zone keyword.other.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(monitor-enter|monitor-exit|assoc|touch|drop|take|concat|prn|into|cons|first|flatten|rest|frest|rrest|second|lazy-cat|lazy-cons|conj|await|range|iterate)\b(?![*+!_?\-])])))
+    (zone storage.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(str|print(ln)?|eval|def|defmacro|defn|quote|var|fn|defmulti|defmethod|map|list|hash-map|vector|agent|declare|intern|macroexpand|macroexpand-1)\b(?![*+!_?\-])])))
+    (zone support.function.match.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(->|\.\.|amap|and|areduce|assert|binding|comment|cond|definline|(def[a-z\-]*)|defmatch|defmethod|defmulti|defn|defn-|defonce|defstruct|delay|doc|doseq|dosync|dotimes|doto|fn|for|if-let|lazy-cons|let|locking|loop|memfn|ns|or|prefer-method|proxy-super|proxy|refer-clojure|remove-method|sync|time|when-first|when-let|when-not|when|while|with-in-str|with-local-vars|with-open|with-out-str|with-precision|memoize)\b(?![*+!_?\-])])))
+    (zone support.function.tester.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(rational|associative|branch|class|coll|contains|decimal|delay|distinct|empty|end|even|every|false|float|fn|identical|instance|integer|isa|keyword|list|map|neg|nil|not-any|not-every|number|odd|pos|ratio|reversible|seq|sequential|set|sorted|special-symbol|string|symbol|true|var|zero|vector|ifn)(\?)(?![*+!_?\-])]
+                (2 keyword.other.mark.clojure))))
+    (zone support.function.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(not(=)|list(\*)|io(!))(?![*+!_?\-])]
+                (3 keyword.other.mark.clojure)
+                (4 keyword.other.mark.clojure)
+                (2 keyword.other.mark.clojure))))
+    (zone support.function.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(zipper|zipmap|xml-zip|xml-seq|with-meta|vector-zip|vector|vec|var-set|var-get|vals|val|use|update-proxy|update-in|up|union|underive|unchecked-subtract|unchecked-negate|unchecked-multiply|unchecked-inc|unchecked-divide|unchecked-dec|unchecked-add|tree-seq|to-array-2d|to-array|test|take-while|take-nth|symbol|supers|subvec|subseq|subs|struct-map|struct|str|split-with|split-at|sorted-set|sorted-map-by|sorted-map|sort-by|sort|some|slurp|shutdown-agents|short|set-validator|set|seque|seq-zip|seq|send-off|send|select-keys|select|rsubseq|rseq|root|rights|right|rfirst|reverse|resultset-seq|resolve|require|replicate|replace|repeatedly|repeat|rename-keys|rename|remove-ns|remove|rem|refer|ref-set|ref|reduce|read-string|read-line|read|re-seq|re-pattern|re-matches|re-matcher|re-groups|re-find|rationalize|rand-int|rand|quot|pvec|psummary|psort|proxy-mappings|project|prn-str|println-str|println|printf|print-str|print|preduce|pr-str|pr|pop|pmin|pmax|pmap|pfilter-nils|pfilter-dupes|peek|pdistinct|path|partition|partial|parse|parents|par|pany|num|nthrest|nth|ns-unmap|ns-unalias|ns-resolve|ns-refers|ns-publics|ns-name|ns-map|ns-interns|ns-imports|ns-aliases|not=|not-empty|not|node|next|newline|namespace|name|min-key|min|meta|merge-with|merge|max-key|max|matchexpand-1|matchexpand|mapcat|map-invert|map|make-node|make-hierarchy|make-array|long-array|long|loaded-libs|load-string|load-reader|load-file|load|list*|list|line-seq|lefts|left|last|keyword|keys|key|join|iterator-seq|into-array|intersection|interpose|interleave|int-array|int|inspect-tree|inspect-table|insert-right|insert-left|insert-child|index|inc|in-ns|import|identity|hash-set|hash-map|hash|get-validator|get-proxy-class|get-in|get|gensym|gen-class|gen-interface|gen-and-save-class|gen-and-load-class|format|force|fnseq|flush|float-array|float|find-var|find-ns|find-doc|find|filter|file-seq|ffirst|eval|enumeration-seq|ensure|empty|edit|drop-while|drop-last|down|double-array|double|dorun|doall|distinct|dissoc|disj|difference|descendants|derive|deref|dec|cycle|create-struct|create-ns|count|construct-proxy|constantly|conj|complement|compare|comparator|comp|commute|clojure.set|clojure.parallel|clojure.inspector|clear-agent-errors|class|children|char|cast|cache-seq|byte|butlast|boolean|bit-xor|bit-test|bit-shift-right|bit-shift-left|bit-set|bit-or|bit-not|bit-flip|bit-clear|bit-and-not|bit-and|bigint|bigdec|bean|bases|await-for|assoc-in|aset-short|aset-long|aset-int|aset-float|aset-double|aset-char|aset-byte|aset-boolean|aset|array-map|apply|append-child|ancestors|alter-var-root|alter|all-ns|alias|alength|aget|agent-errors|agent|add-classpath|aclone|accessor|compile|longs|doubles|ints|floats|atom)\b(?![*+!_?\-])])))
+    (zone constant.language.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b(true|false|nil)\b(?![*+!_?\-])])))
+    (zone constant.language.clojure
+        (match
+            (regex [(\(\)|{}|\[\]|#{})])))
+    (zone storage.modifier.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b:(private|doc|test|tag)\b(?![*+!_?\-])])))
+    (zone support.variable.clojure
+        (match
+            (regex [(?<![*+!_?\-])\b:(file|line|name|ns|match|argslist)\b(?![*+!_?\-])])))
+    (zone support.variable.global.clojure
+        (match
+            (regex [(?<![*+!_?\-])\*(agent|allow-unresolved-vars|command-line-args|compile-files|compile-path|err|file|flush-on-newline|in|macro-meta|math-context|ns|out|print-dup|print-length|print-level|print-meta|print-readably|proxy-classes|use-context-classloader|warn-on-reflection)\*(?![*+!_?\-])]))))
+
+(collection function_name
+    (zone entity.name.function.clojure
+        (start
+            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (subzones
+            (include @keyword)
+            (include @operator)
+            (zone
+                (start
+                    (regex [-(?=[a-zA-Z+!\-_?*~#@'`/.$=])]
+                        (0 keyword.operator.prefix.genclass.clojure)))
+                (end
+                    (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+                (subzones
+                    (include @symbol)))
+            (include @symbol))))
+
+(collection symbol_java_class_form_body
+    (zone
+        (start
+            (regex [(?=[a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (end
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (subzones
+            (include @symbol_java_inherited_class)))
+    (zone
+        (start
+            (regex [(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])]))
+        (end
+            (regex [(?=\))]))
+        (subzones
+            (include @all)))
+    (include @all))
+
+(collection parameters_body
+    (zone meta.function.body
+        (subzones
+            (include @parameters_function)
+            (zone meta.function.body.code.clojure
+                (start
+                    (regex `(?<=\])`))
+                (end
+                    (regex [(?=\))]))
+                (subzones
+                    (include @all))))))
+
+(collection geninterface_parameters
+    (include @gencommon_parameters)
+    (zone meta.other.genclass.implements.clojure
+        (start
+            (regex `(:extends)\s+(\[)`
+                (1 support.other.keyword.genclass.clojure)))
+        (end
+            (regex `\]`))
+        (subzones
+            (include @symbol_java_inherited_class)
+            (include @all))))
+
+(collection metadata_patterns
+    (zone support.other.keyword.namespace.clojure
+        (match
+            (regex [(:tag|:doc|:arglists|:private|:macro|:name|:ns|:inline-arities|:inline|:line|:file)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+    (zone storage.type.java.clojure
+        (match
+            (regex [(?<=:tag)\s+([a-zA-Z+!\-_?0-9*/.$=]+)])))
+    (zone string.docstring.clojure
+        (start
+            (regex [(?<=:doc)\s+"]
+                (0 string.quoted.double.begin.clojure)))
+        (end
+            (regex "
+                (0 string.quoted.double.end.clojure)))
+        (subzones
+            (include @string_escape)))
+    (include @all))
+
+(collection parameters_function
+    (zone meta.function.parameters.vector.clojure
+        (start
+            (regex `\[`
+                (0 punctuation.definition.vector.begin.clojure)))
+        (end
+            (regex `\]`
+                (0 punctuation.definition.vector.end.clojure)))
+        (subzones
+            (zone keyword.operator.varargs.clojure
+                (match
+                    (regex \&)))
+            (zone keyword.operator.symbolargs.clojure
+                (match
+                    (regex [(:as)(?![a-zA-Z+!\-_?0-9*~#@'`/.$=])])))
+            (include @comment)
+            (include @metadata)
+            (include @parameters_variable)
+            (include @parameters)
+            (include @parameters_map))))
+
+(collection set
+    (zone meta.expression.set.clojure
+        (start
+            (regex [#{]
+                (0 punctuation.definition.set.begin.clojure)))
+        (end
+            (regex [}]
+                (0 punctuation.definition.set.end.clojure)))
+        (subzones
+            (include @all))))
+
+(collection symbol_java_inherited_class
+    (zone entity.other.inherited-class.java.clojure
+        (start
+            (regex [(?=([a-z]+\.)*[A-Z][a-zA-Z]*(\$[A-Z][a-zA-Z]*)?)]))
+        (end
+            (regex [(?![a-zA-Z.$])]))
+        (subzones
+            (include @symbol))))

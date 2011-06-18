@@ -1,0 +1,14 @@
+(trigger
+    (key [[shift][cmd]J]))
+
+(name [Jump To Definition])
+
+(only-in source.clojure)
+
+(input nothing word)
+
+(output tooltip)
+
+(save nothing)
+
+(script [open `jump_to_definition.clj`])
