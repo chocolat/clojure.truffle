@@ -16,3 +16,22 @@
 
 (in entity.global.clojure
     (symbol-list))
+
+(pair "
+    "
+    (smart-typing))
+
+(pair `[`
+    `]`
+    (smart-typing)
+    (highlight))
+
+(pair [(]
+    [)]
+    (smart-typing)
+    (highlight))
+
+(pair [{]
+    [}]
+    (smart-typing)
+    (highlight))

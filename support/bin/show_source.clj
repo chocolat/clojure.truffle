@@ -7,12 +7,12 @@
 
 (enter-file-ns)
 
-(clojure.core/require '[clojure.contrib.repl-utils :as repl-utils])
+(clojure.core/require '[clojure.repl :as repl])
 
 (textmate/attempt
   (let [sym (symbol (or (cake/*env* "TM_SELECTED_TEXT")
                         (cake/*env* "TM_CURRENT_WORD")))
-        src (repl-utils/get-source sym)]
+        src (repl/source sym)]
     (if src
       (clojure.core/println (str "<pre>" src "</pre>"))
       (clojure.core/println "Could not find source for" sym))))

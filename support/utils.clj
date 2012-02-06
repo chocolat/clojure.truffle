@@ -2,8 +2,9 @@
  (:require [clojure.string :as string]
            [clojure.java.io :as io]
            [clojure.stacktrace :as stacktrace]
-           [clojure.contrib.seq-utils :as seq-utils]
-           [clojure.contrib.pprint :as pprint]))
+           [clojure.pprint :as pprint])
+ (:import (java.io PushbackReader StringReader)))
+
 (clojure.core/refer 'clojure.core)
 
 (defn htmlize [#^String text]
@@ -113,23 +114,14 @@
   (let [ns (file-ns)]
     (enter-ns ns)))
 
-(defmacro eval-in-ns
-  ""
-  [the-ns & forms]
-  `(let [old-ns# *ns*]
-    (enter-ns ~the-ns)
-    (let [r# ~@forms]
-      (enter-ns (-> old-ns# str symbol))
-      r#)))
-
 (defmacro eval-in-file-ns
   "For the current file, enter the ns (if any)
   and evaluate the form in that ns, then pop
   back up to the original ns"
-  [& forms]
+  [form]
   `(let [old-ns# *ns*]
     (enter-file-ns)
-    (let [r# ~@forms]
+    (let [r# (eval ~form)]
       (enter-ns (-> old-ns# str symbol))
       r#)))
 
@@ -173,7 +165,7 @@
       (let [ch (.charAt line index)]
         #_(println "index:" index "char:" ch"<br>")
         (cond 
-            (zero? index) (.trim (.substring line 0 (inc stop)))
+            (neg? index) (.trim (.substring line 0 (inc stop)))
             (or (nil? ch) (not (symbol-char? (.charAt line index))))                                 
               (.trim (.substring line (inc index) (inc stop)))
             :else (recur (dec index)))))))
@@ -219,9 +211,15 @@
         :default :symbol)))
 
 (defn indices-of [#^String t #^Character target]
-  (reverse (for [[i c] (seq-utils/indexed t)
-          :when (= c target)] i)))
-
+	(reverse (for [[i c] (map-indexed #(vector %1 %2) t)
+					:when (= c target)]
+					(if (and (= c \{)
+							 (> i 0)
+							 (= \# (.charAt t (- i 1)))
+							 (or (= i 1) (not= \\ (.charAt t (- i 2)))))
+						(dec i)
+						i))))
+					
 (def matching-delims
   { \) \(
     \] \[
@@ -247,28 +245,58 @@
                           (first forms)))
                       (catch Exception _ nil)))))))))
 
-(defn display-form-eval [form]
-  (clojure.core/println
-      "<h1>Form</h1>"
-      "<pre>"(textmate/ppstr-nil form)"</pre>")
-  (clojure.core/println
-      "<h1>Result</h1>"
-      "<pre>"
-      (textmate/attempt
-        (-> form
-            clojure.core/eval
-            textmate/eval-in-file-ns
-            textmate/ppstr-nil
-            textmate/htmlize
-            .trim))
-      "</pre>"))
+(defn display-result [form result]
+	(clojure.core/println
+	      "<h1>Form</h1>"
+	      "<pre>"(-> form ppstr-nil)"</pre>")
+	(clojure.core/println
+	      "<h1>Result</h1>"
+	      "<pre>"(-> result ppstr-nil htmlize .trim)"</pre>"))
+
+(defn display-error [form e]
+	(clojure.core/println
+	      "<h1>Form</h1>"
+	      "<pre>"(-> form ppstr-nil)"</pre>")
+	(clojure.core/println
+          "<h1>Exception:</h1>"
+          "<pre>"
+          (add-source-links-to-exception-dump (with-out-str (print-stack-trace e)))
+          "</pre>"))
+			
+(defn save-eval-in-file-ns [form]
+	(try 
+		(-> form eval-in-file-ns)
+		(catch Exception e 
+			[::error e])))
+	
+(defn is-error? [value]
+	(and (vector? value) (= ::error (first value))))
+
+; I've tried to do it functionally using split-with but as evaluation has
+; side effects and the combination split-with and map didn't work.
+(defn display-last-eval [forms]
+	(loop [forms forms
+		   last-ok-form nil
+		   last-ok-val  nil]
+		(if (empty? forms)
+			(display-result last-ok-form last-ok-val)
+			(let [value (save-eval-in-file-ns (first forms))]
+				(if (is-error? value)
+					(display-error (first forms) (second value))
+					(recur (rest forms) (first forms) value))))))
 
 (defn get-last-sexpr
   "Get last sexpr before carret"
   []
   (-> (text-before-carret) find-last-sexpr))
 
-(defn get-selected-sexpr
-  "Get highlighted sexpr"
-  []
-  (-> "TM_SELECTED_TEXT" cake/*env* escape-str clojure.core/read-string))
+(defn read-sexprs
+  "Returns a realized sequence of the sexprs in string s. If last sexpr is malformed throws an exception."
+  [s]
+  (let [reader (-> s StringReader. PushbackReader.)]
+      (doall (take-while #(not= % ::done) (repeatedly #(read reader false ::done))))))
+      
+(defn get-selected-sexprs
+    "Get highlighted sexprs"
+    []
+    (-> "TM_SELECTED_TEXT" cake/*env* escape-str read-sexprs))

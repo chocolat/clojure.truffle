@@ -4,11 +4,11 @@
 (require '[clojure.string :as string])
 (require '[clojure.java.io :as io])
 (load-file (str (io/file (cake/*env* "TM_BUNDLE_SUPPORT") "utils.clj")))
+(load-file (str (io/file (cake/*env* "TM_BUNDLE_SUPPORT") "macro_utils.clj")))
 
 (enter-file-ns)
 
 (require '[clojure.pprint :as pprint])
-(require '[clojure.contrib.macro-utils :as macro-utils])
 
 (textmate/attempt
   (clojure.core/println
